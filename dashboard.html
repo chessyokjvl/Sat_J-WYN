@@ -4,21 +4,39 @@
     <meta charset="UTF-8">
     <title>JVL All Care | Enterprise Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- โหลดไลบรารีสำหรับกราฟและ Export -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <script>
         tailwind.config = { theme: { extend: { colors: { jvl: { dark: '#073430', primary: '#14b8a6' } } } } }
     </script>
-    <style> @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap'); body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; } </style>
+    <style> 
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap'); 
+        body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; } 
+        .sortable:hover { cursor: pointer; background-color: #f9fafb; }
+    </style>
 </head>
 <body class="text-gray-800">
-    <!-- Navbar -->
-    <nav class="bg-jvl-dark text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="text-2xl font-bold tracking-wider"><span class="text-jvl-primary">JVL</span> All Care <span class="text-sm text-gray-300 font-normal ml-2">Analytics Command Center</span></div>
+    <!-- Navbar พร้อมปุ่ม Export -->
+    <nav class="bg-jvl-dark text-white shadow-lg print:hidden">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center">
+            <div class="text-2xl font-bold tracking-wider mb-4 sm:mb-0">
+                <span class="text-jvl-primary">JVL</span> All Care 
+                <span class="text-sm text-gray-300 font-normal ml-2">Analytics Command Center</span>
+            </div>
+            <div class="flex space-x-3">
+                <a href="index.html" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-medium transition">← กลับไปหน้าแบบประเมิน</a>
+                <button onclick="exportExcel()" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm font-medium transition shadow">⬇ Export Excel</button>
+                <button onclick="exportPDF()" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg text-sm font-medium transition shadow">⬇ Export PDF</button>
+            </div>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-6 py-8">
+    <!-- พื้นที่แสดงผล Dashboard (ส่วนที่ Export ลง PDF) -->
+    <div id="dashboard-content" class="max-w-7xl mx-auto px-6 py-8">
+        
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-jvl-primary">
@@ -46,54 +64,174 @@
                 <div id="donutChart"></div>
             </div>
         </div>
+
+        <!-- ตารางจัดอันดับคะแนนเฉลี่ย Q1-Q9 -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-8 overflow-hidden">
+            <h3 class="text-lg font-bold text-jvl-dark mb-4">ตารางจัดอันดับคะแนนเฉลี่ย (Rankings)</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-700 text-sm uppercase">
+                            <th class="p-3 border-b sortable" onclick="sortTable('rank')">อันดับ ↕</th>
+                            <th class="p-3 border-b sortable" onclick="sortTable('topic')">หัวข้อการประเมิน ↕</th>
+                            <th class="p-3 border-b sortable" onclick="sortTable('score')">คะแนนเฉลี่ย (เต็ม 5) ↕</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rankingTableBody" class="text-sm text-gray-700">
+                        <!-- สร้างจาก JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ตารางข้อเสนอแนะ Q10 -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-bold text-jvl-dark mb-4">ข้อเสนอแนะและฟีเจอร์ที่ต้องการเพิ่มเติม</h3>
+            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr class="text-gray-700 text-sm uppercase">
+                            <th class="p-3 border-b w-1/4">วันที่ประเมิน</th>
+                            <th class="p-3 border-b w-1/4">วิชาชีพ / บทบาท</th>
+                            <th class="p-3 border-b w-1/2">ข้อเสนอแนะ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedbackTableBody" class="text-sm text-gray-700">
+                        <!-- สร้างจาก JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9ZBiaBcERbd7PNbMPa3QjzGOy4X6C8V23TFBgQ1fUB4oCsi5wB-azEfrJKusmohxO/exec'; // ใส่ URL ของ GAS
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9ZBiaBcERbd7PNbMPa3QjzGOy4X6C8V23TFBgQ1fUB4oCsi5wB-azEfrJKusmohxO/exec'; // *** ใส่ URL ของ GAS ที่นี่ ***
+        
+        let rawData = []; // เก็บข้อมูลดิบสำหรับ Export
+        let rankingData = []; // เก็บข้อมูลตารางสำหรับจัดเรียง
+        let currentSort = { col: 'score', asc: false }; // ค่าเริ่มต้น: เรียงคะแนนจากมากไปน้อย
+
+        const questionLabels = [
+            "UI Design: ความสวยงามและทันสมัยของหน้าจอ",
+            "Layout Clarity: ความสะอาดตาและการจัดวางองค์ประกอบ",
+            "User-Friendly: ความง่ายในการใช้งานระบบ",
+            "Responsive: ความคล่องตัวบนมือถือ/แท็บเล็ต",
+            "Performance: ความเร็วในการประมวลผล",
+            "Efficiency: การลดการคีย์ข้อมูลซ้ำซ้อน",
+            "Cognitive Load: การลดความสับสนในการทำงาน",
+            "Value: ประโยชน์ของข้อมูลต่อการตัดสินใจ",
+            "Feasibility: ความมั่นใจที่จะใช้แทนระบบเดิม"
+        ];
 
         async function fetchDashboardData() {
             try {
                 const response = await fetch(SCRIPT_URL);
                 const result = await response.json();
-                if(result.status === 'success' && result.data.length > 0) processData(result.data);
+                if(result.status === 'success' && result.data.length > 0) {
+                    rawData = result.data;
+                    processData(rawData);
+                }
             } catch (error) { console.error("Error fetching data", error); }
         }
 
         function processData(data) {
             document.getElementById('totalUsers').innerText = data.length;
 
-            // คำนวณค่าเฉลี่ย
             let totalScore = 0, feasibilityScore = 0;
-            let qAverages = [0,0,0,0,0,0,0,0,0];
+            let qSums = [0,0,0,0,0,0,0,0,0];
             let roleCount = {};
+            let feedbacks = [];
 
             data.forEach(row => {
-                // นับจำนวนวิชาชีพ
                 roleCount[row.Role] = (roleCount[row.Role] || 0) + 1;
                 
                 let rowSum = 0;
                 for(let i=1; i<=9; i++) {
                     let val = parseFloat(row[`Q${i}`]) || 0;
                     rowSum += val;
-                    qAverages[i-1] += val;
+                    qSums[i-1] += val;
                 }
                 totalScore += (rowSum / 9);
                 feasibilityScore += parseFloat(row.Q9) || 0;
+
+                // ดึงข้อเสนอแนะ (Q10) ที่มีข้อมูล
+                if(row.Q10 && row.Q10.toString().trim() !== "") {
+                    let dateStr = new Date(row.Timestamp).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+                    feedbacks.push(`<tr><td class="p-3 border-b text-gray-500 whitespace-nowrap">${dateStr}</td><td class="p-3 border-b"><span class="bg-teal-100 text-teal-800 px-2 py-1 rounded text-xs font-semibold">${row.Role}</span></td><td class="p-3 border-b whitespace-pre-wrap">${row.Q10}</td></tr>`);
+                }
             });
 
+            // อัปเดต Summary Cards
             document.getElementById('avgScore').innerText = (totalScore / data.length).toFixed(2);
             document.getElementById('avgFeasibility').innerText = (feasibilityScore / data.length).toFixed(2);
-            qAverages = qAverages.map(sum => (sum / data.length).toFixed(2));
+            
+            // เตรียมข้อมูล Ranking
+            rankingData = qSums.map((sum, index) => {
+                return { 
+                    id: index + 1, 
+                    topic: questionLabels[index], 
+                    score: parseFloat((sum / data.length).toFixed(2)) 
+                };
+            });
 
-            renderRadarChart(qAverages);
+            // Render ส่วนต่างๆ
+            renderRadarChart(rankingData.map(d => d.score));
             renderDonutChart(Object.keys(roleCount), Object.values(roleCount));
+            
+            // Render ตาราง Q1-Q9 (Sort เริ่มต้น)
+            sortArray(); 
+            
+            // Render ตาราง Feedback Q10
+            document.getElementById('feedbackTableBody').innerHTML = feedbacks.length > 0 ? feedbacks.join('') : '<tr><td colspan="3" class="p-4 text-center text-gray-500">ยังไม่มีข้อเสนอแนะเพิ่มเติม</td></tr>';
         }
 
+        // ฟังก์ชันจัดเรียงตาราง Ranking
+        function sortTable(column) {
+            if (currentSort.col === column) {
+                currentSort.asc = !currentSort.asc; // สลับมาก-น้อย
+            } else {
+                currentSort.col = column;
+                currentSort.asc = column === 'topic' ? true : false;
+            }
+            sortArray();
+        }
+
+        function sortArray() {
+            rankingData.sort((a, b) => {
+                let valA = a[currentSort.col];
+                let valB = b[currentSort.col];
+                if (valA < valB) return currentSort.asc ? -1 : 1;
+                if (valA > valB) return currentSort.asc ? 1 : -1;
+                return 0;
+            });
+            renderRankingTable();
+        }
+
+        function renderRankingTable() {
+            const tbody = document.getElementById('rankingTableBody');
+            let html = '';
+            rankingData.forEach((item, index) => {
+                // สีพื้นหลังเน้น 3 อันดับแรก
+                let bgClass = index < 3 ? 'bg-teal-50' : 'hover:bg-gray-50';
+                let rankIcon = index === 0 ? '🏆 1' : (index === 1 ? '🥈 2' : (index === 2 ? '🥉 3' : index + 1));
+                
+                html += `<tr class="border-b transition duration-150 ${bgClass}">
+                            <td class="p-3 font-semibold text-center w-24">${currentSort.col === 'score' && !currentSort.asc ? rankIcon : '-'}</td>
+                            <td class="p-3">${item.topic}</td>
+                            <td class="p-3 font-bold text-jvl-primary text-lg">${item.score.toFixed(2)}</td>
+                        </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // ฟังก์ชันวาดกราฟ
         function renderRadarChart(seriesData) {
+            document.querySelector("#radarChart").innerHTML = ""; // ลียร์ก่อนวาดใหม่
             new ApexCharts(document.querySelector("#radarChart"), {
                 series: [{ name: 'คะแนนเฉลี่ย', data: seriesData }],
-                chart: { type: 'radar', height: 350, toolbar: { show: false } },
-                labels: ['UI Design', 'Layout', 'UX', 'Responsive', 'Speed', 'Reduce Redundancy', 'Cognitive Load', 'Value to KPI', 'Feasibility'],
+                chart: { type: 'radar', height: 350, toolbar: { show: false }, fontFamily: 'Sarabun' },
+                labels: ['UI Design', 'Layout', 'UX', 'Responsive', 'Speed', 'Reduce Redundancy', 'Cognitive Load', 'Value', 'Feasibility'],
                 colors: ['#14b8a6'],
                 fill: { opacity: 0.2 },
                 yaxis: { max: 5, min: 0 }
@@ -101,16 +239,40 @@
         }
 
         function renderDonutChart(labels, series) {
+            document.querySelector("#donutChart").innerHTML = "";
             new ApexCharts(document.querySelector("#donutChart"), {
                 series: series,
-                chart: { type: 'donut', height: 350 },
+                chart: { type: 'donut', height: 350, fontFamily: 'Sarabun' },
                 labels: labels,
-                colors: ['#073430', '#14b8a6', '#d4af37', '#f59e0b', '#3b82f6'],
+                colors: ['#073430', '#14b8a6', '#d4af37', '#f59e0b', '#3b82f6', '#64748b'],
                 dataLabels: { enabled: true, formatter: function (val) { return val.toFixed(1) + "%" } },
                 legend: { position: 'bottom' }
             }).render();
         }
 
+        // ฟังก์ชัน Export Excel (ดาวน์โหลดข้อมูลดิบทั้งหมด)
+        function exportExcel() {
+            if (rawData.length === 0) return alert("ไม่มีข้อมูลให้ Export");
+            const ws = XLSX.utils.json_to_sheet(rawData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Evaluation Data");
+            XLSX.writeFile(wb, "JVL_AllCare_Evaluation.xlsx");
+        }
+
+        // ฟังก์ชัน Export PDF (แคปเจอร์หน้า Dashboard)
+        function exportPDF() {
+            const element = document.getElementById('dashboard-content');
+            const opt = {
+                margin:       0.2,
+                filename:     'JVL_AllCare_Dashboard.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // โหลดข้อมูลเมื่อเปิดหน้า
         fetchDashboardData();
     </script>
 </body>
