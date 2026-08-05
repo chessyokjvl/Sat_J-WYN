@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>JVL All Care | Enterprise Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { jvl: { dark: '#073430', primary: '#14b8a6' } } } } }
+    </script>
+    <style> @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap'); body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; } </style>
+</head>
+<body class="text-gray-800">
+    <!-- Navbar -->
+    <nav class="bg-jvl-dark text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold tracking-wider"><span class="text-jvl-primary">JVL</span> All Care <span class="text-sm text-gray-300 font-normal ml-2">Analytics Command Center</span></div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-jvl-primary">
+                <p class="text-sm text-gray-500 font-semibold uppercase">จำนวนผู้ประเมินทั้งหมด</p>
+                <h3 class="text-4xl font-bold text-jvl-dark mt-2" id="totalUsers">0</h3>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-500">
+                <p class="text-sm text-gray-500 font-semibold uppercase">คะแนนเฉลี่ยภาพรวม (เต็ม 5)</p>
+                <h3 class="text-4xl font-bold text-jvl-dark mt-2" id="avgScore">0.00</h3>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
+                <p class="text-sm text-gray-500 font-semibold uppercase">ความมั่นใจในการใช้งานจริง</p>
+                <h3 class="text-4xl font-bold text-jvl-dark mt-2" id="avgFeasibility">0.00</h3>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-bold text-jvl-dark mb-4">ผลประเมินตามมิติ (Radar Chart)</h3>
+                <div id="radarChart"></div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-bold text-jvl-dark mb-4">สัดส่วนวิชาชีพผู้ตอบแบบสอบถาม</h3>
+                <div id="donutChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'YOUR_WEB_APP_URL_HERE'; // ใส่ URL ของ GAS
+
+        async function fetchDashboardData() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const result = await response.json();
+                if(result.status === 'success' && result.data.length > 0) processData(result.data);
+            } catch (error) { console.error("Error fetching data", error); }
+        }
+
+        function processData(data) {
+            document.getElementById('totalUsers').innerText = data.length;
+
+            // คำนวณค่าเฉลี่ย
+            let totalScore = 0, feasibilityScore = 0;
+            let qAverages = [0,0,0,0,0,0,0,0,0];
+            let roleCount = {};
+
+            data.forEach(row => {
+                // นับจำนวนวิชาชีพ
+                roleCount[row.Role] = (roleCount[row.Role] || 0) + 1;
+                
+                let rowSum = 0;
+                for(let i=1; i<=9; i++) {
+                    let val = parseFloat(row[`Q${i}`]) || 0;
+                    rowSum += val;
+                    qAverages[i-1] += val;
+                }
+                totalScore += (rowSum / 9);
+                feasibilityScore += parseFloat(row.Q9) || 0;
+            });
+
+            document.getElementById('avgScore').innerText = (totalScore / data.length).toFixed(2);
+            document.getElementById('avgFeasibility').innerText = (feasibilityScore / data.length).toFixed(2);
+            qAverages = qAverages.map(sum => (sum / data.length).toFixed(2));
+
+            renderRadarChart(qAverages);
+            renderDonutChart(Object.keys(roleCount), Object.values(roleCount));
+        }
+
+        function renderRadarChart(seriesData) {
+            new ApexCharts(document.querySelector("#radarChart"), {
+                series: [{ name: 'คะแนนเฉลี่ย', data: seriesData }],
+                chart: { type: 'radar', height: 350, toolbar: { show: false } },
+                labels: ['UI Design', 'Layout', 'UX', 'Responsive', 'Speed', 'Reduce Redundancy', 'Cognitive Load', 'Value to KPI', 'Feasibility'],
+                colors: ['#14b8a6'],
+                fill: { opacity: 0.2 },
+                yaxis: { max: 5, min: 0 }
+            }).render();
+        }
+
+        function renderDonutChart(labels, series) {
+            new ApexCharts(document.querySelector("#donutChart"), {
+                series: series,
+                chart: { type: 'donut', height: 350 },
+                labels: labels,
+                colors: ['#073430', '#14b8a6', '#d4af37', '#f59e0b', '#3b82f6'],
+                dataLabels: { enabled: true, formatter: function (val) { return val.toFixed(1) + "%" } },
+                legend: { position: 'bottom' }
+            }).render();
+        }
+
+        fetchDashboardData();
+    </script>
+</body>
+</html>
