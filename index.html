@@ -3,178 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แบบประเมินความพึงพอใจและข้อเสนอแนะต่อนวัตกรรม The All New "JVL All Care"</title>
+    <title>JVL All Care | Premium Feedback</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- กำหนดสี Medical Teal ให้ตรงกับธีมระบบ -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        teal: { 600: '#0d9488', 700: '#0f766e' }
-                    }
+                        jvl: { dark: '#073430', primary: '#14b8a6', gold: '#d4af37' }
+                    },
+                    fontFamily: { sans: ['Sarabun', 'sans-serif'] }
                 }
             }
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap');
-        body { font-family: 'Sarabun', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        body { background: linear-gradient(135deg, #073430 0%, #115e59 100%); min-height: 100vh; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .radio-custom:checked + div { background-color: #d4af37; color: white; border-color: #d4af37; transform: scale(1.1); box-shadow: 0 4px 10px rgba(212, 175, 55, 0.4); }
     </style>
 </head>
-<body class="bg-gray-100 py-8 px-4">
-
-    <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 md:p-8">
-        <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-teal-700">แบบประเมินความคิดเห็นระบบ JVL All Care</h1>
-            <p class="text-gray-600 mt-2">ความคิดเห็นของท่านมีความสำคัญต่อการพัฒนาระบบให้ตอบโจทย์การทำงานจริง</p>
+<body class="py-10 px-4 text-gray-800">
+    <div class="max-w-4xl mx-auto glass-card overflow-hidden">
+        <!-- Header -->
+        <div class="bg-jvl-dark text-white p-10 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-jvl-primary via-jvl-gold to-jvl-primary"></div>
+            <h1 class="text-3xl md:text-4xl font-bold mb-3 tracking-wide"><span class="text-jvl-primary">JVL</span> All Care</h1>
+            <p class="text-jvl-gold font-medium text-lg">Evaluation & Feedback</p>
         </div>
 
-        <form id="evaluationForm" class="space-y-6">
-            <!-- ส่วนที่ 1: ข้อมูลทั่วไป -->
-            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h2 class="text-lg font-semibold text-gray-800 mb-4">ส่วนที่ 1: ข้อมูลทั่วไป</h2>
-                
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-medium mb-2" for="role">บทบาทหน้าที่ (วิชาชีพ/ตำแหน่ง) <span class="text-red-500">*</span></label>
-                    <select id="role" name="role" required class="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:border-teal-500 focus:ring focus:ring-teal-200" onchange="toggleOtherRole()">
-                        <option value="">-- กรุณาเลือก --</option>
-                        <option value="แพทย์">แพทย์</option>
-                        <option value="พยาบาล">พยาบาล</option>
-                        <option value="เภสัชกร">เภสัชกร</option>
-                        <option value="นักจิตวิทยา">นักจิตวิทยา</option>
-                        <option value="นักสังคมสงเคราะห์">นักสังคมสงเคราะห์</option>
-                        <option value="นักกิจกรรมบำบัด">นักกิจกรรมบำบัด</option>
-                        <option value="นักโภชนาการ">นักโภชนาการ</option>
-                        <option value="นักเทคนิคการแพทย์">นักเทคนิคการแพทย์</option>
-                        <option value="แพทย์แผนไทย">แพทย์แผนไทย</option>
-                        <option value="นักวิชาการสาธารณสุข">นักวิชาการสาธารณสุข</option>
-                        <option value="นักวิชาการคอมพิวเตอร์">นักวิชาการคอมพิวเตอร์</option>
-                        <option value="อื่นๆ">อื่นๆ</option>
-                    </select>
-                </div>
-                
-                <div id="roleOtherDiv" class="mb-4 hidden">
-                    <label class="block text-gray-700 font-medium mb-2">โปรดระบุวิชาชีพ/ตำแหน่งอื่นๆ</label>
-                    <input type="text" id="roleOther" name="roleOther" class="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:border-teal-500 focus:ring focus:ring-teal-200">
-                </div>
-
-                <div>
-                    <label class="block text-gray-700 font-medium mb-2">ระดับการปฏิบัติงาน <span class="text-red-500">*</span></label>
-                    <div class="space-y-2">
-                        <label class="inline-flex items-center"><input type="radio" name="level" value="ผู้บริหาร" required class="text-teal-600 focus:ring-teal-500"> <span class="ml-2">ผู้บริหาร</span></label><br>
-                        <label class="inline-flex items-center"><input type="radio" name="level" value="หัวหน้างาน" class="text-teal-600 focus:ring-teal-500"> <span class="ml-2">หัวหน้างาน</span></label><br>
-                        <label class="inline-flex items-center"><input type="radio" name="level" value="ผู้ปฏิบัติ" class="text-teal-600 focus:ring-teal-500"> <span class="ml-2">ผู้ปฏิบัติ</span></label>
+        <form id="evaluationForm" class="p-8 md:p-12 space-y-10">
+            <!-- Section 1 -->
+            <div>
+                <h2 class="text-2xl font-bold text-jvl-dark border-b-2 border-jvl-gold pb-2 mb-6 inline-block">ส่วนที่ 1: ข้อมูลบุคลากร</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label class="block font-semibold mb-2 text-gray-700">บทบาทหน้าที่ <span class="text-red-500">*</span></label>
+                        <select name="role" required class="w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-jvl-primary transition">
+                            <option value="">-- เลือกวิชาชีพ --</option>
+                            <option value="แพทย์">แพทย์</option>
+                            <option value="พยาบาล">พยาบาล</option>
+                            <option value="เภสัชกร">เภสัชกร</option>
+                            <option value="นักวิชาการคอมพิวเตอร์">นักวิชาการคอมพิวเตอร์</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-2 text-gray-700">ระดับการปฏิบัติงาน <span class="text-red-500">*</span></label>
+                        <select name="level" required class="w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-jvl-primary transition">
+                            <option value="">-- เลือกระดับ --</option>
+                            <option value="ผู้บริหาร">ผู้บริหาร</option>
+                            <option value="หัวหน้างาน">หัวหน้างาน</option>
+                            <option value="ผู้ปฏิบัติ">ผู้ปฏิบัติ</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
-            <!-- ส่วนที่ 2: การประเมิน -->
-            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h2 class="text-lg font-semibold text-gray-800 mb-2">ส่วนที่ 2: ประเมินความพึงพอใจ</h2>
-                <p class="text-sm text-gray-500 mb-6">(5 = มากที่สุด, 4 = มาก, 3 = ปานกลาง, 2 = น้อย, 1 = น้อยที่สุด)</p>
-
-                <!-- สร้างคำถาม 9 ข้อผ่าน Script ด้านล่างเพื่อความกระชับของโค้ด HTML -->
-                <div id="ratingQuestions" class="space-y-6"></div>
-
-                <!-- ข้อ 10: เสนอแนะ -->
-                <div class="mt-6">
-                    <label class="block text-gray-700 font-medium mb-2">10. ความสามารถ ฟีเจอร์ หรือรูปแบบฟอร์มที่ท่านอยากให้เพิ่มเติมมากที่สุด</label>
-                    <textarea name="q10" rows="4" class="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:border-teal-500 focus:ring focus:ring-teal-200" placeholder="พิมพ์ข้อเสนอแนะของท่านที่นี่..."></textarea>
+            <!-- Section 2 -->
+            <div>
+                <h2 class="text-2xl font-bold text-jvl-dark border-b-2 border-jvl-gold pb-2 mb-2 inline-block">ส่วนที่ 2: ประเมินระบบ</h2>
+                <p class="text-gray-500 mb-6 font-medium">(5 = ดีเยี่ยม, 1 = ต้องปรับปรุง)</p>
+                <div id="ratingQuestions" class="space-y-8"></div>
+                
+                <div class="mt-8">
+                    <label class="block font-semibold mb-3 text-gray-700 text-lg">ข้อเสนอแนะฟีเจอร์เพิ่มเติมที่ต้องการ</label>
+                    <textarea name="q10" rows="3" class="w-full bg-gray-50 border border-gray-200 py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-jvl-primary transition resize-none" placeholder="บอกเล่าไอเดียของคุณได้เลย..."></textarea>
                 </div>
             </div>
 
-            <!-- ปุ่ม Submit -->
-            <div class="text-center">
-                <button type="submit" id="submitBtn" class="bg-teal-600 text-white font-semibold py-3 px-8 rounded-full shadow hover:bg-teal-700 transition duration-300">
-                    ส่งแบบประเมิน
+            <div class="text-center pt-6">
+                <button type="submit" id="submitBtn" class="bg-gradient-to-r from-jvl-dark to-jvl-primary text-white font-bold py-4 px-12 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition duration-300 text-lg">
+                    ส่งข้อมูลการประเมิน
                 </button>
             </div>
-            <div id="loading" class="text-center text-teal-600 font-medium hidden">กำลังบันทึกข้อมูล...</div>
         </form>
     </div>
 
     <script>
-        // --- นำ URL จาก Google Apps Script มาใส่ตรงนี้ ---
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9ZBiaBcERbd7PNbMPa3QjzGOy4X6C8V23TFBgQ1fUB4oCsi5wB-azEfrJKusmohxO/exec'; 
-
-        // แสดงช่องระบุอื่นๆ
-        function toggleOtherRole() {
-            const role = document.getElementById('role').value;
-            const otherDiv = document.getElementById('roleOtherDiv');
-            if (role === 'อื่นๆ') {
-                otherDiv.classList.remove('hidden');
-                document.getElementById('roleOther').required = true;
-            } else {
-                otherDiv.classList.add('hidden');
-                document.getElementById('roleOther').required = false;
-                document.getElementById('roleOther').value = '';
-            }
-        }
-
-        // ชุดคำถาม 9 ข้อ
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9ZBiaBcERbd7PNbMPa3QjzGOy4X6C8V23TFBgQ1fUB4oCsi5wB-azEfrJKusmohxO/exec'; // ใส่ URL ของ GAS 
         const questions = [
-            "1. ความสวยงามและทันสมัยของหน้าจอภาพรวม",
-            "2. การจัดวางองค์ประกอบ ข้อมูลดูสะอาดตา ไม่ซับซ้อน",
-            "3. ความง่ายและเป็นมิตรต่อผู้ใช้งาน (User-friendly)",
-            "4. ความคล่องตัวในการใช้งานผ่านมือถือ/แท็บเล็ต",
-            "5. ความเร็วในการตอบสนองของระบบขณะคลิกใช้งาน",
-            "6. ระบบช่วยลดการคีย์ข้อมูลซ้ำซ้อนได้ดี",
-            "7. ระบบช่วยลดภาระทางความคิด (Cognitive Load) หรือลดความสับสนในการทำงาน",
-            "8. ประโยชน์ของข้อมูลและ Dashboard ต่อการตัดสินใจ",
-            "9. ความเป็นไปได้และความมั่นใจที่จะนำไปใช้งานจริงแทนระบบเดิม"
+            "UI Design: ความสวยงามและทันสมัยของหน้าจอ",
+            "Layout Clarity: ความสะอาดตาและการจัดวางองค์ประกอบ",
+            "User-Friendly: ความง่ายในการใช้งานระบบ",
+            "Responsive: ความคล่องตัวบนมือถือ/แท็บเล็ต",
+            "Performance: ความเร็วในการประมวลผล",
+            "Efficiency: การลดการคีย์ข้อมูลซ้ำซ้อน",
+            "Cognitive Load: การลดความสับสนในการทำงาน",
+            "Value: ประโยชน์ของข้อมูลต่อการตัดสินใจ",
+            "Feasibility: ความมั่นใจที่จะใช้แทนระบบเดิม"
         ];
 
-        // สร้าง HTML Radio buttons อัตโนมัติ
         const qContainer = document.getElementById('ratingQuestions');
-        questions.forEach((q, index) => {
-            const qNum = index + 1;
-            let radioHTML = `<div class="mb-4"><label class="block text-gray-700 font-medium mb-2">${q} <span class="text-red-500">*</span></label><div class="flex justify-between max-w-sm">`;
+        questions.forEach((q, idx) => {
+            let html = `<div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition"><p class="font-semibold text-lg mb-4 text-gray-800">${idx+1}. ${q}</p><div class="flex flex-wrap gap-4 justify-between sm:justify-start">`;
             for (let i = 5; i >= 1; i--) {
-                radioHTML += `<label class="flex flex-col items-center cursor-pointer text-sm"><input type="radio" name="q${qNum}" value="${i}" required class="mb-1 text-teal-600 focus:ring-teal-500"> ${i}</label>`;
+                html += `<label class="relative cursor-pointer"><input type="radio" name="q${idx+1}" value="${i}" required class="sr-only radio-custom"><div class="w-12 h-12 flex items-center justify-center rounded-full border-2 border-gray-200 text-gray-500 font-bold text-lg transition-all duration-200 hover:border-jvl-primary">${i}</div></label>`;
             }
-            radioHTML += `</div></div>`;
-            qContainer.innerHTML += radioHTML;
+            html += `</div></div>`;
+            qContainer.innerHTML += html;
         });
 
-        // จัดการฟอร์ม Submit
         document.getElementById('evaluationForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const btn = document.getElementById('submitBtn');
-            const loading = document.getElementById('loading');
-            btn.classList.add('hidden');
-            loading.classList.remove('hidden');
-
-            // รวบรวมข้อมูลฟอร์ม
-            const formData = new FormData(this);
-            const dataObj = Object.fromEntries(formData.entries());
-
-            // ส่งข้อมูลไปที่ GAS
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                // ส่งเป็น plain text เพื่อหลีกเลี่ยงปัญหา CORS Preflight ในบางเบราว์เซอร์
-                body: JSON.stringify(dataObj) 
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    alert('ขอบคุณที่ร่วมประเมิน ระบบบันทึกข้อมูลสำเร็จครับ');
-                    this.reset();
-                    toggleOtherRole();
-                } else {
-                    alert('เกิดข้อผิดพลาด: ' + data.message);
-                }
-            })
-            .catch(error => {
-                // สำหรับกรณีที่ Browser Block CORS response (แม้ข้อมูลจะลง Sheet แล้ว)
-                alert('ส่งข้อมูลสำเร็จ ขอบคุณสำหรับความคิดเห็นครับ'); 
-                this.reset();
-            })
-            .finally(() => {
-                btn.classList.remove('hidden');
-                loading.classList.add('hidden');
-            });
+            btn.innerHTML = 'กำลังประมวลผล...'; btn.disabled = true;
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(this))) })
+            .then(() => { alert('บันทึกข้อมูลเรียบร้อย ขอบคุณครับ'); this.reset(); })
+            .finally(() => { btn.innerHTML = 'ส่งข้อมูลการประเมิน'; btn.disabled = false; });
         });
     </script>
 </body>
